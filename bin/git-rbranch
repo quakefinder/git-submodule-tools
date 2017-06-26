@@ -1,0 +1,38 @@
+#!/bin/bash -e
+## Show diff branch..origin/branch
+## for this repository and all submodules
+
+## read input, display help if necessary
+if [[ "$@" == *--help* ]]; then
+    cat<<EOF
+ Recursive branch - List, create, or delete branches
+
+ Usage (see 'git help branch':
+    git rbranch                   # list branches
+    git rbranch -m newBranchName  # rename current branch(es)
+    git rbranch -m old new        # rename 'old' branch(es) to 'new'
+    etc.
+EOF
+    exit 0;
+fi
+
+## from the git mailinglist:
+function git
+{
+    LC_MESSAGES=C command git "$@"
+}
+export git
+
+
+## ensure we are in the toplevel directory
+cdup=$(git rev-parse --show-toplevel) &&
+cd "$cdup" || {
+    echo >&2 "Cannot chdir to $cdup, the toplevel of the working tree"
+    exit 1
+}
+
+
+# This is just a lightweight call to submodule foreach and to the top level
+
+git branch $@
+git submodule foreach git branch $@
