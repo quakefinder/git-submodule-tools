@@ -1,0 +1,64 @@
+#! /bin/bash -e
+
+# Cases not covered:
+#  1. 'gitdir' is in a .git file in the git toplevel, although not a submodule
+#     Note: git worktree produces such files
+#  2. a git repo sitting inside another git repo, but not a submodule
+#  3. a submodule that does not use a .git file containing 'gitdir'
+#     Note: git v1.7.9.5 (and later) produces the needed files
+
+#set -x
+
+# attempt to ensure this is sourced and not run as a script (not a guarantee)
+if [[ $BASH_SOURCE == $0 ]] ; then
+    cat >&2 <<EOF
+ Error: Cannot call $(basename $BASH_SOURCE) as a script!"
+  Instead, source $0 to run it.  That is:
+    #$ source $(basename $0)  # if on the path
+  or
+    #$ . $(basename $0)       # if on the path
+  or (if not on the path)
+    #$ source $0
+    #$ . $0
+EOF
+    exit 1
+fi
+
+# Protect against multiple calls to this function
+if [ ! -z ${rgit_start_directory+x} ] ; then
+    cat >&2 <<EOF
+ Error: Attempt to call $(basename $BASH_SOURCE) multiple times"
+  present implementation does not support this
+EOF
+    return 1 || exit 1
+fi
+# now=$(date +%s)
+# if [ ! -z ${rgit_find_super_start+x} ] ; then
+#     export prev_rgit_find_super_start=$rgit_find_super_start
+# fi
+# export rgit_find_super_start=$now
+
+# ...
+export rgit_start_directory=$(pwd)
+immediate_git_root=$(git rev-parse --show-toplevel)
+parent_of_present_git_root="$(dirname "$immediate_git_root")"
+
+if ! (cd "$parent_of_present_git_root" \
+        && git rev-parse --show-toplevel 2>&1 > /dev/null) ;
+then
+    # Do nothing - parent is not a git repo
+    return 0 || exit 1
+fi
+
+# Change to toplevel parent git repo dir and return
+cd $(cd "$parent_of_present_git_root" \
+       && git rev-parse --show-toplevel 2>/dev/null)
+return 0 || exit 1
+
+# this_dot_git="$immediate_git_root/.git"
+# parent_of_start_directory=$(dirname $rgit_start_directory)
+# [ -e "$this_dot_git" ] \
+#   && [ ! -d "$this_dot_git" ] \
+#   && grep gitdir "$this_dot_git" >/dev/null ] \
+#   && [ ! -d "$(git rev-parse --show-toplevel)/.git" ]
+#       pwd && return 0 || exit 1
