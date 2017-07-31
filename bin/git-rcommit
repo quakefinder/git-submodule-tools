@@ -102,4 +102,4 @@ EOF
     fi
 fi
 
-cd "$rgit_start_directory"
+restore_wd

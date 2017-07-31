@@ -54,4 +54,4 @@ fi
 ## push super rep.
 git cpush -q "$@"
 
-cd "$rgit_start_directory"
+restore_wd

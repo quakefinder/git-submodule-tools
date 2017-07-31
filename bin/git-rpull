@@ -84,4 +84,4 @@ if [ -f .gitmodules ]; then
     git rfetch
 fi
 
-cd "$rgit_start_directory"
+restore_wd
