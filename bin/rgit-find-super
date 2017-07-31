@@ -7,7 +7,9 @@
 #  3. a submodule that does not use a .git file containing 'gitdir'
 #     Note: git v1.7.9.5 (and later) produces the needed files
 
-#set -x
+# TODO
+#  a. Produces a lot of warnings
+#  b. mitigate issue where variable rgit_start_directory can break functionality
 
 # attempt to ensure this is sourced and not run as a script (not a guarantee)
 if [[ $BASH_SOURCE == $0 ]] ; then
@@ -27,19 +29,20 @@ fi
 # Protect against multiple calls to this function
 if [ ! -z ${rgit_start_directory+x} ] ; then
     cat >&2 <<EOF
- Error: Attempt to call $(basename $BASH_SOURCE) multiple times"
-  present implementation does not support this
+ Warning: called $(basename $BASH_SOURCE) multiple times"
+  present implementation assumes no action required
 EOF
-    return 1 || exit 1
+    return 0 || exit 0
 fi
-# now=$(date +%s)
-# if [ ! -z ${rgit_find_super_start+x} ] ; then
-#     export prev_rgit_find_super_start=$rgit_find_super_start
-# fi
-# export rgit_find_super_start=$now
 
-# ...
+# get the present directory and define restore_wd_exit_1
 export rgit_start_directory=$(pwd)
+
+function restore_wd_exit_1 () {
+    cd "$rgit_start_directory"
+    exit 1
+}
+
 immediate_git_root=$(git rev-parse --show-toplevel)
 parent_of_present_git_root="$(dirname "$immediate_git_root")"
 
@@ -54,11 +57,3 @@ fi
 cd $(cd "$parent_of_present_git_root" \
        && git rev-parse --show-toplevel 2>/dev/null)
 return 0 || exit 1
-
-# this_dot_git="$immediate_git_root/.git"
-# parent_of_start_directory=$(dirname $rgit_start_directory)
-# [ -e "$this_dot_git" ] \
-#   && [ ! -d "$this_dot_git" ] \
-#   && grep gitdir "$this_dot_git" >/dev/null ] \
-#   && [ ! -d "$(git rev-parse --show-toplevel)/.git" ]
-#       pwd && return 0 || exit 1
