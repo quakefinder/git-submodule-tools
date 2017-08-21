@@ -60,13 +60,15 @@ do
     esac
 done
 
+source rgit-find-super
+
 ## commit in submodules first
 if [[ $recursive -eq 1 ]]; then
     if [ -f $(git rev-parse --show-toplevel)/.gitmodules ]; then
-        #git submodule --quiet foreach "git rcommit \"$COMMIT_ARGS\"" || exit 1
+        #git submodule --quiet foreach "git rcommit \"$COMMIT_ARGS\"" || restore_wd_exit_1
 	CMD='cd "$1"; git rcommit '"$args"
 	git submodule --quiet foreach 'echo "$toplevel/$path"' | 
-	xargs -r -n1 -P1 bash -c "$CMD" xargs || exit 1
+	xargs -r -n1 -P1 bash -c "$CMD" xargs || restore_wd_exit_1
     fi
 fi
 
@@ -88,7 +90,7 @@ Error in $PWD:
  Refused to commit in detached head state. 
  See "git attach-head --help" for help on attaching the HEAD.
 EOF
-	exit 1
+	restore_wd_exit_1
     fi
 
     echo "Committing in $PWD..."
@@ -100,3 +102,4 @@ EOF
     fi
 fi
 
+restore_wd
